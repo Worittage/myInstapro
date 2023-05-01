@@ -1,22 +1,3 @@
-@keyframes rotating {
-  from {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(30deg);;
-  }
-  75% {
-    transform: rotate(-30deg);;
-  }
-  to {
-    transform: rotate(0deg);
-  }
-}
-
-.-loading-like {
-  animation: rotating 2s linear infinite;
-}
-
 .page-container {
   padding: 0 20px;
 }
@@ -52,6 +33,11 @@
   cursor: pointer;
 }
 
+.user_avatar {
+  width: 50px;
+  
+}
+
 .logout-button {
   width: 130px;
   text-align: right;
@@ -59,10 +45,13 @@
 
 .posts {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 30px;
+  flex-wrap: wrap;
   list-style: none;
   padding: 0;
   margin: 0;
+  justify-content: center;
 }
 
 .post-header {
@@ -71,8 +60,17 @@
   align-items: center;
   margin-bottom: 10px;
   cursor: pointer;
+  justify-content: space-between;
 }
 
+.post-header-user {
+  display: flex;
+  align-items: center;
+}
+
+.trash-button {
+  height: 20px;
+}
 .post-header__user-image {
   width: 40px;
   height: 40px;
@@ -84,16 +82,16 @@
 .post-image-container {
   margin-left: -20px;
   margin-right: -20px;
-  height: 500px;
+  max-height: 400px;
   display: flex;
   justify-content: center;
   background-color: #e0e0e0;
 }
 
 .post-image {
-  width: 100%;
-  height: 100%;
-  max-width: 500px;
+
+  height: 400px;
+  width: 400px;
   object-fit: cover;
 }
 
@@ -126,8 +124,12 @@
   color: #8a8a8a;
 }
 
-.post + .post {
+.post {
   margin-top: 20px;
+  width: 400px;
+  height: 530px;
+  
+
 }
 
 .posts-user-header {
@@ -214,4 +216,45 @@
   box-sizing: border-box;
   width: 100%;
   text-align: center;
+}
+
+.users-posts {
+  display: flex;
+  flex-direction: row;
+  column-gap: 20px;
+  padding: 0;
+  margin: 0;
+  flex-wrap: wrap
+}
+
+.users_post {
+  width: 500px;
+}
+
+@media (max-width: 500px) {
+
+  .post-image-container {
+    height: 375px;
+  }
+
+  .post-image {
+    width: 375px;
+    height: 375px;
+}
+}
+
+@media (max-width: 375px) {
+
+  .post-image-container {
+    height: 300px;
+  }
+
+  .post-image {
+    width: 300px;
+    height: 300px;
+}
+
+.post {
+  height: 430px;
+}
 }

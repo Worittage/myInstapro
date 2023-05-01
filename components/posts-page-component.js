@@ -1,102 +1,147 @@
-import { USER_POSTS_PAGE, CHANGE_LIKE_PAGE, DELETE_PAGE } from "../routes.js";
-import { renderHeaderComponent } from "./header-component.js";
-import { posts, goToPage, getToken, getId } from "../index.js";
+import { USER_POSTS_PAGE } from "../routes.js"
+import { renderHeaderComponent } from "./header-component.js"
+import { posts, goToPage, user, getToken, newGetPosts } from "../index.js"
+
 import { formatDistanceToNow } from "date-fns"
+import { el, ru } from "date-fns/locale"
+
+import { addLike, delLike, getPosts } from "../api.js"
 
 export function renderPostsPageComponent({ appEl }) {
+  // TODO: реализовать рендер постов из api
 
-  const appHtml = `
-  <div class="page-container">
-    <div class="header-container"></div>
-    <ul class="posts">`+
-posts.map((post, id) => {
-return ` <li class="post">
-        <div class="post-header" data-user-id="${post.user.id}">
-            <div class="post-header-user"><img src=${post.user.imageUrl} class="post-header__user-image">
-            <p class="post-header__user-name">${post.user.name}</p>
-            </div>
-            <div>
-            <svg class="trash-button" data-delete-id="${post.id}" data-user-delete-id="${post.user.id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/></svg>
-            </div>
-        </div>
-        <div class="post-image-container">
-          <img class="post-image" src=${post.imageUrl}>
-        </div>
-        <div class="post-likes">
-          <button data-post-id="${post.id}" class="like-button">
-            <img src="./assets/images/${(post.isLiked ? "like-active.svg" : "like-not-active.svg")}">
-          </button>
-          <p class="post-likes-text">
-            Нравится: <strong>
-            ${post.likes.length === 0 ? 0 : post.likes[post.likes.length - 1].name + ((post.likes.length > 1) ? " и еще " + (post.likes.length - 1) : "")}
-             
-            </strong>
-          </p>
-        </div>
-        <p class="post-text">
-          <span class="user-name">${post.user.name}</span>
-          ${post.description}
-        </p>
-        <p class="post-date">
-        ${formatDistanceToNow(new Date(post.createdAt))} <span>ago</span>
-        </p>
-      </li>`
-})
-.join(" ") + `             
-    </ul>
-  </div>`;
+  console.log("Актуальный список постов:", posts)
 
-  appEl.innerHTML = appHtml;
+  const appHtml = posts
+    .map(
+      (elementsOfdata, index) =>
+        `
+              <div class="page-container">
+                <div class="header-container"></div>
+                <ul class="posts">
+                  <li class="post" data-index=${index}>
+                    <div class="post-header" data-user-id="${
+                      elementsOfdata.user.id
+                    }">
+                        <img src="${
+                          elementsOfdata.user.imageUrl
+                        }" class="post-header__user-image">  <!-- тут меняем аватарку юзера -->
+                        <p class="post-header__user-name">${
+                          elementsOfdata.user.name
+                        }</p>
+                    </div>
+                    <div class="post-image-container">
+                      <img class="post-image" src="${elementsOfdata.imageUrl}">
+                    </div>
+                    <div class="post-likes">
+                      <button data-post-id="${
+                        elementsOfdata.id
+                      }" class="like-button">
+                      ${
+                        elementsOfdata.isLiked
+                          ? '<img src="./assets/images/like-active.svg">'
+                          : '<img src="./assets/images/like-not-active.svg">'
+                      }
+                      </button>
+                      <p class="post-likes-text">
+                        Нравится: <strong>  ${
+                          elementsOfdata.likes.length > 1 //  кол-во лайков > 1 ?
+                            ? // если да, то перебираем каждый лайк и отображаем имя последнего человека
+                              elementsOfdata.likes
+                                .map((like) => {
+                                  // перебираем
+                                  return like.name // отображаем имя
+                                })
+                                .pop() + // имя последнего человека кто лайкнул
+                              " и еще " + // нравится / и еще кому то
+                              (elementsOfdata.likes.length - 1) // (всего 4 лайка, но отображается нр-ся екатерине и еще 3 людям) (3) ( всего в массиве 4 эл-та начиная с 0)
+                            : elementsOfdata.likes.length === 1 // если кол-во лайков = 1, то отображается кто лайкнул
+                            ? elementsOfdata.likes.map((like) => {
+                                return like.name
+                              })
+                            : "0"
+                        } </strong>
+                      </p>
+                    </div>
+                    <p class="post-text">
+                      <span class="user-name">${elementsOfdata.user.name}</span>
+                      ${elementsOfdata.description}
+                    </p>
+                    <p class="post-date">
+                      ${formatDistanceToNow(
+                        new Date(elementsOfdata.createdAt),
+                        {
+                          locale: ru,
+                          addSuffix: true,
+                        }
+                      )}
+                    </p>
+       
+                    </li>
+                </ul>
+              </div>`
+    )
+    .join("")
+
+  /**
+   * TODO: чтобы отформатировать дату создания поста в виде "19 минут назад"
+   * можно использовать https://date-fns.org/v2.29.3/docs/formatDistanceToNow
+   */
+  appEl.innerHTML = appHtml
+
+  function liveLikes() {
+    const buttonLikeElements = document.querySelectorAll(".like-button")
+    for (let buttonLikeElement of buttonLikeElements) {
+      buttonLikeElement.addEventListener("click", () => {
+        buttonLikeElement.classList.add("-loading-like") // при нажатии на кнопку добавляю класс "лоадинг лайк"
+        // лайк будет активен до запуска ф-ии renderUserPosts (147)
+        // classList add/remove добавляет или убирает класс
+        const postID = buttonLikeElement.dataset.postId //находим в разметке post-id // id posta a ne uzera
+        const index = buttonLikeElement.closest(".post").dataset.index // находим index
+        const userID = document.querySelector(".posts").dataset.userId
+        const id = {
+          userId: userID,
+        }
+
+        if (user && posts[index].isLiked === false) {
+          addLike({
+            token: getToken(),
+            postID: postID, // id поста
+          })
+            .then(() => {
+              return getPosts({ token: getToken(), id })
+            })
+            .then((response) => {
+              newGetPosts(response) // перезаписываем newGetUserPosts после нажатия лайка
+              return renderPostsPageComponent({ appEl, posts }) // ререндер страницы конкретного юзера
+            })
+        } else if (user && posts[index].isLiked === true) {
+          delLike({
+            token: getToken(),
+            postID: postID,
+          })
+            .then(() => {
+              return getPosts({ token: getToken(), id })
+            })
+            .then((response) => {
+              newGetPosts(response)
+              return renderPostsPageComponent({ appEl, posts })
+            })
+        }
+      })
+    }
+  }
+  liveLikes()
 
   renderHeaderComponent({
     element: document.querySelector(".header-container"),
-  });
+  })
 
   for (let userEl of document.querySelectorAll(".post-header")) {
     userEl.addEventListener("click", () => {
       goToPage(USER_POSTS_PAGE, {
         userId: userEl.dataset.userId,
-      });
-    });
-  }
-  for (let likeEl of document.querySelectorAll(".like-button")) {
-  
-    likeEl.addEventListener("click", () => {
-      if (!getToken()) {
-      alert("Лайкать посты могут только авторизованные пользователи!");
-      return;
-      }
-        goToPage(CHANGE_LIKE_PAGE, {
-        postId: likeEl.dataset.postId,
-      });
-    });
-  }
-
-// Обработка клика по кнопке удалить пост
-
-for (let deleteEl of document.querySelectorAll(".trash-button")) {
-  deleteEl.addEventListener("click", (event) => {
-
-    event.stopPropagation();
-    if (!getToken()) {
-    alert("Удалять посты могут только авторизованные пользователи!");
-    return;
-    }
- 
-   if (getId() !== deleteEl.dataset.userDeleteId) {
-     alert ("Вы можете удалять только свои посты");
-     return;
-   }
-
-    else {
-      goToPage(DELETE_PAGE, {
-      postId: deleteEl.dataset.deleteId,
+      })
     })
   }
-  });
 }
-
-}
-
-
-

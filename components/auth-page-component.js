@@ -67,9 +67,10 @@ export function renderAuthPageComponent({ appEl, setUser }) {
     const uploadImageContainer = appEl.querySelector(".upload-image-container");
 
     if (uploadImageContainer) {
-      renderUploadImageComponent({
+      renderUploadImageComponent({ // компонент загрузки фотографии, рендерит кнопку "Выберите фото"
         element: appEl.querySelector(".upload-image-container"),
-        onImageUrlChange(newImageUrl) {
+        onImageUrlChange(newImageUrl) { // когда изменяется url фотографии(т.е. когда мы загружаем фотографию), вызывается обработчик ниже
+          console.log({imageUrl});
           imageUrl = newImageUrl;
         },
       });

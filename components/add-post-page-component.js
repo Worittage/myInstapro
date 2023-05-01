@@ -1,76 +1,84 @@
-import { uploadPost } from "../api.js";
-import { getToken } from "../index.js";
-import { renderHeaderComponent } from "./header-component.js";
-import { renderUploadImageComponent } from "./upload-image-component.js";
-
-let imageUrl = "";
-
-export function renderAddPostPageComponent({ appEl, onAddPostClick }) {
-
-
+import { goToPage } from "../index.js"
+import { renderHeaderComponent } from "./header-component.js"
+import { POSTS_PAGE } from "../routes.js"
+export function renderAddPostPageComponent({ appEl, onAddPostClick, element }) {
   const render = () => {
+    // TODO: Реализовать страницу добавления поста
 
     const appHtml = `
     <div class="page-container">
-      <div class="header-container"></div>`+
-      `       
-    <div class="form">
-      <h3 class="form-title">Добавить пост</h3>
-      <div class="form-inputs">
-        <div class="upload-image-container">
-          <div class="upload=image">
+      <div class="header-container"></div>
       
-            <label class="file-upload-label secondary-button">
-                <input type="file" class="file-upload-input" style="display:none">
-                Выберите фото
-            </label>
-          </div>
-        </div>
-        <label>
-          Опишите фотографию:
-          <textarea class="input textarea" id ="input_description" rows="4"></textarea>
-         </label>
-         <button class="button" id="add-button">Добавить</button>
-      </div>
-    </div>
+      <div class="page-header">
+      <h1 class="logo">instapro</h1>
+      <div class="post-header">
+  </div>      
+  </div>
+
+      <div class="form">
+              <h3 class="form-title">
+                Добавить&nbsp;пост
+                </h3>
+              <div class="form-inputs">
     
-  `;
 
-    appEl.innerHTML = appHtml;
+                  <label style="text-align: center;">Опишите фотографию</label>
+                  <input type="text" id="post-input" class="input" placeholder="Добавьте описание к посту">
+                  
+                  <div class="form-error"></div>
+                  <div style="text-align: center;"> <input type="file" id="image-input"> </div>
+                  <button class="button" id="add-button">Добавить пост</button>
+              </div>
+            
+              
+          </div>  
 
-        // Формирование шапки страницы
-        renderHeaderComponent({ element: document.querySelector(".header-container"), });
-        // Обработка выбора изображения поста
-        renderUploadImageComponent({
-          element: document.querySelector(".upload-image-container"),
-          onImageUrlChange: (newImageUrl) => { imageUrl = newImageUrl; }
-        });
 
-    // Обработка клика на кнопке "Добавить" 
+      
+  `
+
+    appEl.innerHTML = appHtml
+
+    document.querySelector(".logo").addEventListener("click", () => {
+      goToPage(POSTS_PAGE)
+    })
+
     document.getElementById("add-button").addEventListener("click", () => {
-      // Проверка заполнения полей
-      const normalizedDescription = document.getElementById("input_description").value.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+      // <input type="file" id="image-input" />
+      const fileInputElement = document.getElementById("image-input")
+      postImage({ file: fileInputElement.files[0] })
 
-      if (normalizedDescription === "") {
-        alert("Введите описание фотографии");
-        return;
+      function postImage({ file }) {
+        const data = new FormData()
+        data.append("file", file)
+
+        return fetch(baseHost + "/api/upload/image", {
+          method: "POST",
+          body: data,
+        })
+          .then((response) => {
+            return response.json()
+          })
+          .then((data) => {
+            console.log(data.fileUrl)
+            const pic = data.fileUrl
+            console.log(pic)
+
+            const post = document.getElementById("post-input")
+            const postValue = post.value
+            console.log(postValue)
+
+            onAddPostClick({
+              // отсюда передаем данные в index.js,  ф-ия callback
+              description: postValue,
+              imageUrl: pic,
+            })
+          })
       }
-      if (imageUrl === "") {
-        alert("Выберите фотографию");
-        return;
-      }
+    })
+  }
 
-      uploadPost({
-        token: getToken(),
-        description: normalizedDescription,
-        imageUrl:imageUrl,
-      });
-      onAddPostClick();
-    });
-
-  };
- 
-  render(); 
+  render()
 }
 
-
+import { baseHost } from "../api.js"

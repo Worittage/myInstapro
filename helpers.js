@@ -1,3 +1,5 @@
+// Работа с юзером для сохранения авторизации через localStorage
+
 export function saveUserToLocalStorage(user) {
   window.localStorage.setItem("user", JSON.stringify(user));
 }
